@@ -26,25 +26,16 @@ func (p *Person) MapColumns(colToField map[string]interface{}) {
 	colToField["age"] = &p.Age
 }
 
-// and example error handler
-func printErr(r *http.Request, err error) {
-	fmt.Printf("Error in route GET %s: %s\n", r.URL.Path, err.Error())
-}
-
-// we need to return an error here, even if we handle the response writing, so that the general
-// error handler may be called
-func createPerson(m map[string]interface{}, w http.ResponseWriter) error {
-	// we fake a created response here
-	res := map[string]interface{}{"Id": 400, "Name": m["name"]}
-	w.WriteHeader(http.StatusCreated)
-	wsi.ServeJSON(res, w)
-	return nil
-}
+var personRessource wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
 
 // findPersonsFake fakes our query, for a realistic query see findPersons
 func findPersonsFake(opts wsi.QueryOptions) (wsi.Scanner, error) {
 	return wsi.NewTestQuery(testData...), nil
 }
+
+// creates a http.Handler based on findPersonsFake that writes the resulting persons as json
+// we are using the fake query here to avoid the need for a database
+var findHandler = personRessource.Query(findPersonsFake).SetErrorCallback(printErr)
 
 var DB *sql.DB
 
@@ -64,14 +55,20 @@ func findPersons(opts wsi.QueryOptions) (wsi.Scanner, error) {
 	return wsi.DBQuery(DB, "SELECT id,name from person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
 }
 
-var personRessource wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
+// createPerson creates a person based on the values inside the given map
+// and writes to the given responsewriter
+// we need to return an error here, even if we handle the response writing, so that the general
+// error handler may be called
+func createPerson(m map[string]interface{}, w http.ResponseWriter) error {
+	// we fake a created response here
+	res := map[string]interface{}{"Id": 400, "Name": m["name"]}
+	w.WriteHeader(http.StatusCreated)
+	wsi.ServeJSON(res, w)
+	return nil
+}
 
 // creates a http.Handler based on createPerson that load persons as json
 var addHandler = personRessource.Exec(createPerson).SetErrorCallback(printErr)
-
-// creates a http.Handler based on findPersonsFake that writes the resulting persons as json
-// we are using the fake query here to avoid the need for a database
-var findHandler = personRessource.Query(findPersonsFake).SetErrorCallback(printErr)
 
 func Example() {
 	rec := httptest.NewRecorder()
@@ -98,4 +95,9 @@ func Example() {
 var testData = []map[string]wsi.Setter{
 	map[string]wsi.Setter{"id": wsi.SetInt(12), "name": wsi.SetString("Adrian")},
 	map[string]wsi.Setter{"id": wsi.SetInt(24), "name": wsi.SetString("George")},
+}
+
+// an example error handler
+func printErr(r *http.Request, err error) {
+	fmt.Printf("Error in route GET %s: %T %s\n", r.URL.Path, err, err.Error())
 }
