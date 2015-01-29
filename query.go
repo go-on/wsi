@@ -11,7 +11,7 @@ type Encoder func(http.ResponseWriter) (StreamEncoder, error)
 
 type Query struct {
 	encFn        Encoder
-	mapperFn     Ressource
+	mapperFn     RessourceFunc
 	fn           QueryFunc
 	errorHandler func(*http.Request, error)
 }

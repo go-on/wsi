@@ -8,7 +8,7 @@ import (
 
 // Exec is a http.Handler that execs a ExecFunc
 type Exec struct {
-	mapperFn     Ressource
+	mapperFn     RessourceFunc
 	fn           ExecFunc
 	errorHandler func(*http.Request, error)
 	dec          RequestDecoder
@@ -46,6 +46,7 @@ func (we Exec) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	m := map[string]interface{}{}
 	mapper.MapColumns(m)
+	Dereference(m)
 	err = we.fn(m, w, r)
 	if err != nil {
 		if we.errorHandler != nil {

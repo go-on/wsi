@@ -74,7 +74,7 @@ func (p *person) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/real":
 		fn = searchPersonFromDB
 	}
-	Ressource(newPersonMapper).Query(fn).SetErrorCallback(errHandler).ServeHTTP(w, r)
+	RessourceFunc(newPersonMapper).Query(fn).SetErrorCallback(errHandler).ServeHTTP(w, r)
 }
 
 func init() {

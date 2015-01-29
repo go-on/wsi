@@ -1,10 +1,111 @@
 package wsi
 
+import (
+	"gopkg.in/go-on/builtin.v1"
+	"time"
+)
+
 // Setter is a helper to be used inside of fake scanner functions for unit testing.
 type Setter interface {
 	// Set set the target to the objects value.
 	// Target must be a pointer of the objects type, otherwise an error will be returned
 	Set(target interface{}) error
+}
+
+// Dereference derefences all values inside the given map and panics for unsupported values
+func Dereference(m map[string]interface{}) {
+	for k, v := range m {
+		switch t := v.(type) {
+		case *int:
+			m[k] = *t
+		case *int8:
+			m[k] = *t
+		case *int16:
+			m[k] = *t
+		case *int32:
+			m[k] = *t
+		case *int64:
+			m[k] = *t
+		case *uint:
+			m[k] = *t
+		case *uint8:
+			m[k] = *t
+		case *uint16:
+			m[k] = *t
+		case *uint32:
+			m[k] = *t
+		case *uint64:
+			m[k] = *t
+		case *float32:
+			m[k] = *t
+		case *float64:
+			m[k] = *t
+		case *string:
+			m[k] = *t
+		case *bool:
+			m[k] = *t
+		case *time.Time:
+			m[k] = *t
+		case builtin.Stringer:
+			if t != nil {
+				m[k] = t.String()
+			}
+		case builtin.Uinter:
+			if t != nil {
+				m[k] = t.Uint()
+			}
+		case builtin.Uint8er:
+			if t != nil {
+				m[k] = t.Uint8()
+			}
+		case builtin.Uint16er:
+			if t != nil {
+				m[k] = t.Uint16()
+			}
+		case builtin.Uint32er:
+			if t != nil {
+				m[k] = t.Uint32()
+			}
+		case builtin.Uint64er:
+			if t != nil {
+				m[k] = t.Uint64()
+			}
+		case builtin.Inter:
+			if t != nil {
+				m[k] = t.Int()
+			}
+		case builtin.Int8er:
+			if t != nil {
+				m[k] = t.Int8()
+			}
+		case builtin.Int16er:
+			if t != nil {
+				m[k] = t.Int16()
+			}
+		case builtin.Int32er:
+			if t != nil {
+				m[k] = t.Int32()
+			}
+		case builtin.Int64er:
+			if t != nil {
+				m[k] = t.Int64()
+			}
+		case builtin.Float32er:
+			if t != nil {
+				m[k] = t.Float32()
+			}
+		case builtin.Float64er:
+			if t != nil {
+				m[k] = t.Float64()
+			}
+		case builtin.Booler:
+			if t != nil {
+				m[k] = t.Bool()
+			}
+		default:
+			panic("unsupported type for '" + k + "'")
+		}
+	}
 }
 
 func TestQuery(d ...map[string]Setter) func(targets map[string]interface{}) (stop bool, err error) {

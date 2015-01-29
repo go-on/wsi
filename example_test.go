@@ -28,7 +28,7 @@ func (p *Person) MapColumns(colToField map[string]interface{}) {
 
 // newPerson is a function that creates a new person.
 // we need this as wsi.Ressource to generate the http.Handlers
-var newPerson wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
+var newPerson wsi.RessourceFunc = func() wsi.ColumnsMapper { return &Person{} }
 
 // findPersonsFake fakes our query, for a realistic query, see findPersons
 // if any error happens, it must write to the response writer and return an error

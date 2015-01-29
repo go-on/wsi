@@ -13,12 +13,25 @@ type QueryFunc func(QueryOptions, http.ResponseWriter, *http.Request) (Scanner, 
 // some happened, so that the error may be passed to the general error handler
 type ExecFunc func(map[string]interface{}, http.ResponseWriter, *http.Request) error
 
-type Ressource func() ColumnsMapper
+type RessourceFunc func() ColumnsMapper
 
-func (r Ressource) Exec(e ExecFunc) Exec {
+func (r RessourceFunc) Exec(e ExecFunc) Exec {
 	return Exec{mapperFn: r, fn: e, dec: JSONDecoder}
 }
 
-func (r Ressource) Query(q QueryFunc) Query {
+func (r RessourceFunc) Query(q QueryFunc) Query {
 	return Query{encFn: NewJSONStreamer, mapperFn: r, fn: q}
+}
+
+type Ressource struct {
+	RessourceFunc
+	ErrorHandler func(r *http.Request, err error)
+}
+
+func (rs Ressource) ServeQuery(q QueryFunc, w http.ResponseWriter, r *http.Request) {
+	rs.RessourceFunc.Query(q).SetErrorCallback(rs.ErrorHandler).ServeHTTP(w, r)
+}
+
+func (rs Ressource) ServeExec(e ExecFunc, w http.ResponseWriter, r *http.Request) {
+	rs.RessourceFunc.Exec(e).SetErrorCallback(rs.ErrorHandler).ServeHTTP(w, r)
 }
