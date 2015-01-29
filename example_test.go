@@ -3,6 +3,7 @@
 package wsi_test
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -40,35 +41,37 @@ func createPerson(m map[string]interface{}, w http.ResponseWriter) error {
 	return nil
 }
 
+// findPersonsFake fakes our query, for a realistic query see findPersons
+func findPersonsFake(opts wsi.QueryOptions) (wsi.Scanner, error) {
+	return wsi.NewTestQuery(testData...), nil
+}
+
+var DB *sql.DB
+
 // findPersons defines the search sql.
 // it must handle edge case, like limit = 0 or max limits, however limit and offset will never be < 0
 func findPersons(opts wsi.QueryOptions) (wsi.Scanner, error) {
-	// here we use a fake scanner to simulate database content
-	return wsi.NewTestQuery(testData...), nil
-	/*
-		For real database queries you might want to do something like this:
+	if len(opts.OrderBy) == 0 {
+		opts.OrderBy = append(opts.OrderBy, "id asc")
+	}
 
-		if len(opts.OrderBy) == 0 {
-			opts.OrderBy = append(opts.OrderBy, "id asc")
-		}
+	// handle max limit
+	limit := opts.Limit
+	if limit == 0 || limit > 30 {
+		limit = 30
+	}
 
-		// handle max limit
-		limit := opts.Limit
-		if limit == 0 || limit > 30 {
-			limit = 30
-		}
-
-		return wsi.DBQuery(DB, "SELECT id,name from person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
-	*/
+	return wsi.DBQuery(DB, "SELECT id,name from person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
 }
 
 var personRessource wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
 
-// create a http.Handler based on createPerson that load persons as json
+// creates a http.Handler based on createPerson that load persons as json
 var addHandler = personRessource.Exec(createPerson).SetErrorCallback(printErr)
 
-// create a http.Handler based on findPersons that writes the resulting persons as json
-var findHandler = personRessource.Query(findPersons).SetErrorCallback(printErr)
+// creates a http.Handler based on findPersonsFake that writes the resulting persons as json
+// we are using the fake query here to avoid the need for a database
+var findHandler = personRessource.Query(findPersonsFake).SetErrorCallback(printErr)
 
 func Example() {
 	rec := httptest.NewRecorder()
