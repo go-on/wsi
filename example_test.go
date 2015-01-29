@@ -55,7 +55,13 @@ func findPersons(opts wsi.QueryOptions) (wsi.Scanner, error) {
 		limit = 30
 	}
 
-	return wsi.DBQuery(DB, "SELECT id,name from person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
+	return wsi.DBQuery(
+		DB,
+		"SELECT id,name from person ORDER BY $1 LIMIT $2 OFFSET $3",
+		strings.Join(opts.OrderBy, ","),
+		limit,
+		opts.Offset,
+	)
 }
 
 // createPerson creates a person based on the values inside the given map

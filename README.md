@@ -28,7 +28,13 @@ func (p *Person) MapColumns(colToField map[string]interface{}) {
 var newPerson wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
 
 func findPersons(opts wsi.QueryOptions) (wsi.Scanner, error) {
-    return wsi.DBQuery(DB, "SELECT id,name from person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), opts.Limit, opts.Offset)
+    return wsi.DBQuery(
+        DB, 
+        "SELECT id,name from person ORDER BY $1 LIMIT $2 OFFSET $3", 
+        strings.Join(opts.OrderBy, ","), 
+        opts.Limit, 
+        opts.Offset,
+    )
 }
 
 
