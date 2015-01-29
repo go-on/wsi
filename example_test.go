@@ -26,16 +26,19 @@ func (p *Person) MapColumns(colToField map[string]interface{}) {
 	colToField["age"] = &p.Age
 }
 
-var personRessource wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
+// newPerson is a function that creates a new person.
+// we need this as wsi.Ressource to generate the http.Handlers
+var newPerson wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
 
-// findPersonsFake fakes our query, for a realistic query see findPersons
+// findPersonsFake fakes our query, for a realistic query, see findPersons
 func findPersonsFake(opts wsi.QueryOptions) (wsi.Scanner, error) {
 	return wsi.NewTestQuery(testData...), nil
 }
 
 // creates a http.Handler based on findPersonsFake that writes the resulting persons as json
-// we are using the fake query here to avoid the need for a database
-var findHandler = personRessource.Query(findPersonsFake).SetErrorCallback(printErr)
+// we are using the fake query here to avoid the need for a database, you may replace findPersonsFake
+// with findPersons if you have a real database connection
+var findHandler = newPerson.Query(findPersonsFake).SetErrorCallback(printErr)
 
 var DB *sql.DB
 
@@ -68,7 +71,7 @@ func createPerson(m map[string]interface{}, w http.ResponseWriter) error {
 }
 
 // creates a http.Handler based on createPerson that load persons as json
-var addHandler = personRessource.Exec(createPerson).SetErrorCallback(printErr)
+var addHandler = newPerson.Exec(createPerson).SetErrorCallback(printErr)
 
 func Example() {
 	rec := httptest.NewRecorder()
