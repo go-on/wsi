@@ -27,8 +27,19 @@ type ColumnsMapper interface {
 	MapColumns(colToField map[string]interface{})
 }
 
-type Validater interface {
-	Validate() map[string]error
+// POSTValidater validates data of POST requests
+type POSTValidater interface {
+	ValidatePOST() map[string]error
+}
+
+// PUTValidater validates data of PUT requests
+type PUTValidater interface {
+	ValidatePUT() map[string]error
+}
+
+// PATCHValidater validates data of PATCH requests
+type PATCHValidater interface {
+	ValidatePATCH() map[string]error
 }
 
 // QueryFunc is a function that returns a Scanner (with the help of the Query function) for the given

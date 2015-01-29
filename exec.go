@@ -35,18 +35,40 @@ func (we Exec) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if val, ok := mapper.(Validater); ok {
-		errs := val.Validate()
-		if len(errs) > 0 {
-			w.WriteHeader(http.StatusBadRequest)
-			ServeJSON(errsMarshaller(errs), w)
-			return
+	switch r.Method {
+	case "PUT":
+		if val, ok := mapper.(PUTValidater); ok {
+			errs := val.ValidatePUT()
+			if len(errs) > 0 {
+				w.WriteHeader(http.StatusBadRequest)
+				ServeJSON(errsMarshaller(errs), w)
+				return
+			}
+		}
+	case "PATCH":
+		if val, ok := mapper.(PATCHValidater); ok {
+			errs := val.ValidatePATCH()
+			if len(errs) > 0 {
+				w.WriteHeader(http.StatusBadRequest)
+				ServeJSON(errsMarshaller(errs), w)
+				return
+			}
+		}
+	case "POST":
+		if val, ok := mapper.(POSTValidater); ok {
+			errs := val.ValidatePOST()
+			if len(errs) > 0 {
+				w.WriteHeader(http.StatusBadRequest)
+				ServeJSON(errsMarshaller(errs), w)
+				return
+			}
 		}
 	}
 
 	m := map[string]interface{}{}
 	mapper.MapColumns(m)
 	Dereference(m)
+	// fmt.Printf("we: %#v, m: %#v\n", we, m)
 	err = we.fn(m, w, r)
 	if err != nil {
 		if we.errorHandler != nil {
