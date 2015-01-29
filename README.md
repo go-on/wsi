@@ -8,7 +8,7 @@ integrates web requests with database/sql (golang)
 ```go
 
 import (
-    "github.com/go-on/wsi"
+    "gopkg.in/go-on/wsi.v1"
     "net/http"
 )
 
