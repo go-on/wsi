@@ -1,8 +1,7 @@
-package wsi_test
+package wsi
 
 import (
 	"database/sql"
-	"github.com/go-on/wsi"
 	"gopkg.in/go-on/pq.v2"
 	"gopkg.in/metakeule/dbwrap.v2"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 var fake, db = dbwrap.NewFake()
 var realDB *sql.DB
 
-func searchPersonFromDB(opts wsi.QueryOptions) (wsi.Scanner, error) {
+func searchPersonFromDB(opts QueryOptions) (Scanner, error) {
 	if len(opts.OrderBy) == 0 {
 		opts.OrderBy = append(opts.OrderBy, "id ASC")
 	}
@@ -23,10 +22,10 @@ func searchPersonFromDB(opts wsi.QueryOptions) (wsi.Scanner, error) {
 	if limit == 0 {
 		limit = 30
 	}
-	return wsi.DBQuery(realDB, `SELECT 2 AS "id", 'hiho' AS "name" ORDER BY $1 LIMIT $2 OFFSET $3`, strings.Join(opts.OrderBy, ","), limit, opts.Offset)
+	return DBQuery(realDB, `SELECT 2 AS "id", 'hiho' AS "name" ORDER BY $1 LIMIT $2 OFFSET $3`, strings.Join(opts.OrderBy, ","), limit, opts.Offset)
 }
 
-func searchPeronsIdsNames(opts wsi.QueryOptions) (wsi.Scanner, error) {
+func searchPeronsIdsNames(opts QueryOptions) (Scanner, error) {
 	if len(opts.OrderBy) == 0 {
 		opts.OrderBy = append(opts.OrderBy, "id ASC")
 	}
@@ -34,10 +33,10 @@ func searchPeronsIdsNames(opts wsi.QueryOptions) (wsi.Scanner, error) {
 	if limit == 0 {
 		limit = 20
 	}
-	return wsi.DBQuery(db, "SELECT id,name FROM person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
+	return DBQuery(db, "SELECT id,name FROM person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
 }
 
-func searchPersonIds(opts wsi.QueryOptions) (wsi.Scanner, error) {
+func searchPersonIds(opts QueryOptions) (Scanner, error) {
 	if len(opts.OrderBy) == 0 {
 		opts.OrderBy = append(opts.OrderBy, "id ASC")
 	}
@@ -45,7 +44,7 @@ func searchPersonIds(opts wsi.QueryOptions) (wsi.Scanner, error) {
 	if limit == 0 {
 		limit = 10
 	}
-	return wsi.DBQuery(db, "SELECT id FROM person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
+	return DBQuery(db, "SELECT id FROM person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
 }
 
 func (p *person) MapColumns(colToField map[string]interface{}) {
@@ -60,13 +59,13 @@ type person struct {
 	err  error
 }
 
-func newPersonMapper() wsi.ColumnsMapper {
+func newPersonMapper() ColumnsMapper {
 	return &person{}
 }
 
 func (p *person) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	errHandler := func(rr *http.Request, err error) { p.err = err }
-	var fn func(wsi.QueryOptions) (wsi.Scanner, error)
+	var fn func(QueryOptions) (Scanner, error)
 	switch r.URL.Path {
 	case "/a":
 		fn = searchPeronsIdsNames
@@ -75,7 +74,7 @@ func (p *person) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/real":
 		fn = searchPersonFromDB
 	}
-	wsi.Ressource(newPersonMapper).Query(fn).SetErrorCallback(errHandler).ServeHTTP(w, r)
+	Ressource(newPersonMapper).Query(fn).SetErrorCallback(errHandler).ServeHTTP(w, r)
 }
 
 func init() {
@@ -83,7 +82,11 @@ func init() {
 }
 
 func TestRealDB(t *testing.T) {
-	u, err := pq.ParseURL(os.Getenv("PG_URL") + "?sslmode=disable")
+	pg_url := os.Getenv("PG_URL")
+	if pg_url == "" {
+		t.SkipNow()
+	}
+	u, err := pq.ParseURL(pg_url + "?sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
@@ -98,6 +101,10 @@ func TestRealDB(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/real", nil)
 
 	p.ServeHTTP(rec, req)
+
+	if p.err != nil {
+		t.Errorf("got err: %s", err.Error())
+	}
 
 	got := rec.Body.String()
 	expected := `[{"Id":2,"Name":"hiho"}
@@ -116,7 +123,7 @@ func TestRealDB(t *testing.T) {
 
 }
 
-func TestQuery(t *testing.T) {
+func TestQueryRun(t *testing.T) {
 	p := &person{}
 
 	queryA := "SELECT id,name FROM person ORDER BY $1 LIMIT $2 OFFSET $3"
