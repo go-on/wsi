@@ -43,7 +43,11 @@ func main() {
     servePersons := newPerson.Query(findPersons)
 
     http.Handle("/person/", servePersons)
+    // will serve: [{"Id":12,"Name":"Adrian"},{"Id":24,"Name":"George"},...]
+
     http.ListenAndServe(":8080",nil)    
 }
 
 ```
+
+You may define your own `wsi.Encoder` if you want to deliver something other than `application/json; charset=utf-8`.
