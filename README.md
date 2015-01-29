@@ -50,4 +50,4 @@ func main() {
 
 ```
 
-You may define your own `wsi.Encoder` if you want to deliver something other than `application/json; charset=utf-8`.
+You may define your own `wsi.Encoder` if you want to deliver something other than json.
