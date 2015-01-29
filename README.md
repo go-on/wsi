@@ -1,7 +1,7 @@
 # wsi
 integrates web requests with database/sql (golang)
 
-[![GoDoc](https://godoc.org/github.com/go-on/wsi?status.png)](http://godoc.org/github.com/go-on/wsi)
+[ ![Codeship Status for go-on/wsi](https://codeship.io/projects/88d33190-89c8-0132-2266-4676ffdbdc37/status)](https://codeship.io/projects/59797) [![GoDoc](https://godoc.org/github.com/go-on/wsi?status.png)](http://godoc.org/github.com/go-on/wsi)
 
 ## Example
 
