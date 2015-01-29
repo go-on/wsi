@@ -14,7 +14,7 @@ import (
 var fake, db = dbwrap.NewFake()
 var realDB *sql.DB
 
-func searchPersonFromDB(opts QueryOptions) (Scanner, error) {
+func searchPersonFromDB(opts QueryOptions, w http.ResponseWriter, r *http.Request) (Scanner, error) {
 	if len(opts.OrderBy) == 0 {
 		opts.OrderBy = append(opts.OrderBy, "id ASC")
 	}
@@ -25,7 +25,7 @@ func searchPersonFromDB(opts QueryOptions) (Scanner, error) {
 	return DBQuery(realDB, `SELECT 2 AS "id", 'hiho' AS "name" ORDER BY $1 LIMIT $2 OFFSET $3`, strings.Join(opts.OrderBy, ","), limit, opts.Offset)
 }
 
-func searchPeronsIdsNames(opts QueryOptions) (Scanner, error) {
+func searchPeronsIdsNames(opts QueryOptions, w http.ResponseWriter, r *http.Request) (Scanner, error) {
 	if len(opts.OrderBy) == 0 {
 		opts.OrderBy = append(opts.OrderBy, "id ASC")
 	}
@@ -36,7 +36,7 @@ func searchPeronsIdsNames(opts QueryOptions) (Scanner, error) {
 	return DBQuery(db, "SELECT id,name FROM person ORDER BY $1 LIMIT $2 OFFSET $3", strings.Join(opts.OrderBy, ","), limit, opts.Offset)
 }
 
-func searchPersonIds(opts QueryOptions) (Scanner, error) {
+func searchPersonIds(opts QueryOptions, w http.ResponseWriter, r *http.Request) (Scanner, error) {
 	if len(opts.OrderBy) == 0 {
 		opts.OrderBy = append(opts.OrderBy, "id ASC")
 	}
@@ -65,7 +65,7 @@ func newPersonMapper() ColumnsMapper {
 
 func (p *person) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	errHandler := func(rr *http.Request, err error) { p.err = err }
-	var fn func(QueryOptions) (Scanner, error)
+	var fn func(QueryOptions, http.ResponseWriter, *http.Request) (Scanner, error)
 	switch r.URL.Path {
 	case "/a":
 		fn = searchPeronsIdsNames

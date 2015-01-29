@@ -27,14 +27,20 @@ func (p *Person) MapColumns(colToField map[string]interface{}) {
 
 var newPerson wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
 
-func findPersons(opts wsi.QueryOptions) (wsi.Scanner, error) {
-    return wsi.DBQuery(
+func findPersons(opts wsi.QueryOptions, w http.ResponseWriter, r *http.Request) (wsi.Scanner, error) {
+    sc, err := wsi.DBQuery(
         DB, 
         "SELECT id,name from person ORDER BY $1 LIMIT $2 OFFSET $3", 
         strings.Join(opts.OrderBy, ","), 
         opts.Limit, 
         opts.Offset,
     )
+    // handle error writes on your own
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        w.Write([]byte(`Database error. Contact the administrator.`))
+    }
+    return sc, err
 }
 
 

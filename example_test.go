@@ -31,7 +31,8 @@ func (p *Person) MapColumns(colToField map[string]interface{}) {
 var newPerson wsi.Ressource = func() wsi.ColumnsMapper { return &Person{} }
 
 // findPersonsFake fakes our query, for a realistic query, see findPersons
-func findPersonsFake(opts wsi.QueryOptions) (wsi.Scanner, error) {
+// if any error happens, it must write to the response writer and return an error
+func findPersonsFake(opts wsi.QueryOptions, w http.ResponseWriter, r *http.Request) (wsi.Scanner, error) {
 	return wsi.NewTestQuery(testData...), nil
 }
 
@@ -44,7 +45,7 @@ var DB *sql.DB
 
 // findPersons defines the search sql.
 // it must handle edge case, like limit = 0 or max limits, however limit and offset will never be < 0
-func findPersons(opts wsi.QueryOptions) (wsi.Scanner, error) {
+func findPersons(opts wsi.QueryOptions, w http.ResponseWriter, r *http.Request) (wsi.Scanner, error) {
 	if len(opts.OrderBy) == 0 {
 		opts.OrderBy = append(opts.OrderBy, "id asc")
 	}
@@ -68,7 +69,7 @@ func findPersons(opts wsi.QueryOptions) (wsi.Scanner, error) {
 // and writes to the given responsewriter
 // we need to return an error here, even if we handle the response writing, so that the general
 // error handler may be called
-func createPerson(m map[string]interface{}, w http.ResponseWriter) error {
+func createPerson(m map[string]interface{}, w http.ResponseWriter, r *http.Request) error {
 	// we fake a created response here
 	res := map[string]interface{}{"Id": 400, "Name": m["name"]}
 	w.WriteHeader(http.StatusCreated)

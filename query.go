@@ -34,14 +34,22 @@ func (wq Query) SetErrorCallback(fn func(*http.Request, error)) Query {
 }
 
 func (wq Query) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	scanner := QueryByRequest(w, r, wq.fn)
-	// we could not construct the scanner properly. fail early.
-	err := scanner.Error()
+	scanner, err := QueryByRequest(w, r, wq.fn)
+	// if we got an error here, the status code has already be written
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		if wq.errorHandler != nil {
 			wq.errorHandler(r, err)
 		}
+		return
+	}
+
+	// we could not construct the scanner properly. fail early.
+	err = scanner.Error()
+	if err != nil {
+		if wq.errorHandler != nil {
+			wq.errorHandler(r, err)
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -83,22 +91,22 @@ func (wq Query) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // It does so by using the url query values for the keys "offset", "limit" and "sort", for further information see ScanQueryValues
 // If any error happens before scanning, a http.StatusInternalServerError will be written to the ResponseWriter
 // and the first call to Next() fails. The error than can retrieved via the Error method of the scanner
-func QueryByRequest(w http.ResponseWriter, r *http.Request, fn QueryFunc) (scanner Scanner) {
-	var err error
-
+func QueryByRequest(w http.ResponseWriter, r *http.Request, fn QueryFunc) (scanner Scanner, err error) {
 	options := ScanQueryValues(r.URL.Query())
 	options.Filter = map[string]string{}
 
 	for key, _ := range r.URL.Query() {
 		options.Filter[key] = r.URL.Query().Get(key)
 	}
-
-	scanner, err = fn(options)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		scanner = errScanner{err}
-	}
-	return
+	/*
+		scanner, err = fn(w, r, options)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			scanner = errScanner{err}
+		}
+		return
+	*/
+	return fn(options, w, r)
 }
 
 // ScanQueryValues scans the query values "offset", "limit" and "sort" out of the given url.Values.

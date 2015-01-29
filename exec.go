@@ -46,7 +46,7 @@ func (we Exec) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	m := map[string]interface{}{}
 	mapper.MapColumns(m)
-	err = we.fn(m, w)
+	err = we.fn(m, w, r)
 	if err != nil {
 		if we.errorHandler != nil {
 			we.errorHandler(r, err)
