@@ -1,6 +1,7 @@
 package wsi
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 )
@@ -10,6 +11,21 @@ type JSONStreamer struct {
 	w     http.ResponseWriter
 	enc   *json.Encoder
 	first bool
+}
+
+// MapViaJSON transforms an object to its map representation via
+// json marshalling.
+// MapViaJSON is not fast (doing a json encoding and decoding each time),
+// but it is convenient and universal somehow
+func MapViaJSON(v interface{}) (m map[string]interface{}, err error) {
+	var bf bytes.Buffer
+	err = json.NewEncoder(&bf).Encode(v)
+	if err != nil {
+		return nil, err
+	}
+	m = map[string]interface{}{}
+	err = json.NewDecoder(&bf).Decode(&m)
+	return
 }
 
 // NewJSONStreamer returns a JSONStreamer for the given ResponseWriter and starts writing to it.
