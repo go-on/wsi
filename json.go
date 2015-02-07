@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"reflect"
+
+	"gopkg.in/go-on/lib.v2/internal/meta"
 )
 
 // JSONStreamer streams a json array to an http.ResponseWriter
@@ -26,6 +29,31 @@ func MapViaJSON(v interface{}) (m map[string]interface{}, err error) {
 	m = map[string]interface{}{}
 	err = json.NewDecoder(&bf).Decode(&m)
 	return
+}
+
+func MustMapViaJSON(v interface{}) map[string]interface{} {
+	m, err := MapViaJSON(v)
+	if err != nil {
+		panic(err.Error())
+	}
+	return m
+}
+
+// MapSQL similar to MapViaJSON (but should be faster), but for sql tags. structPtr must be a pointer to a struct
+func MapSQL(structPtr interface{}) (map[string]interface{}, error) {
+	s, err := meta.StructByValue(reflect.ValueOf(structPtr))
+	if err != nil {
+		return nil, err
+	}
+	return s.ToMap("sql"), nil
+}
+
+func MustMapSQL(structPtr interface{}) map[string]interface{} {
+	m, err := MapSQL(structPtr)
+	if err != nil {
+		panic(err.Error())
+	}
+	return m
 }
 
 // NewJSONStreamer returns a JSONStreamer for the given ResponseWriter and starts writing to it.
