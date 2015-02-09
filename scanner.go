@@ -41,7 +41,7 @@ func ScanToMapper(sc Scanner, m interface{}) error {
 	if err != nil {
 		return err
 	}
-	return sc.Scan(ptrs...)
+	return sqlnull.Wrap(sc).Scan(ptrs...)
 }
 
 // NewTestScanner returns a new faking Scanner using the given function to fake the scanning.
