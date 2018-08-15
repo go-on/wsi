@@ -3,7 +3,7 @@ package wsi
 import (
 	"time"
 
-	"gopkg.in/go-on/builtin.v1"
+	"github.com/go-on/builtin"
 )
 
 // Setter is a helper to be used inside of fake scanner functions for unit testing.

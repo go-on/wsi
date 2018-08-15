@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"gopkg.in/go-on/lib.v3/internal/meta"
+	"github.com/go-on/lib/misc/meta"
 )
 
 // JSONStreamer streams a json array to an http.ResponseWriter

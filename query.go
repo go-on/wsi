@@ -2,7 +2,7 @@ package wsi
 
 import (
 	"database/sql"
-	"gopkg.in/go-on/builtin.v1/db"
+	"github.com/go-on/builtin/db"
 	"net/http"
 	"net/url"
 	"strconv"

@@ -1,7 +1,7 @@
 package wsi
 
 import (
-	"gopkg.in/go-on/builtin.v1/sqlnull"
+	"github.com/go-on/builtin/sqlnull"
 
 	"database/sql"
 )

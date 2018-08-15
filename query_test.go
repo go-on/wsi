@@ -2,14 +2,14 @@ package wsi
 
 import (
 	"database/sql"
-	"gopkg.in/go-on/builtin.v1"
+	"github.com/go-on/builtin"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"gopkg.in/go-on/pq.v2"
-	"gopkg.in/metakeule/dbwrap.v2"
+	"github.com/go-on/pq"
+	"github.com/metakeule/dbwrap"
 )
 
 var fake, DB = dbwrap.NewFake()
